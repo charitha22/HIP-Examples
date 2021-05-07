@@ -76,7 +76,7 @@ create_matrix_from_random(float **mp, int size){
   float *l, *u, *m;
   int i,j,k;
 
-  srand(time(NULL));
+  srand(0);
 
   l = (float*)malloc(size*size*sizeof(float));
   if ( l == NULL)
@@ -99,6 +99,7 @@ create_matrix_from_random(float **mp, int size){
           }
       }
   }
+
 
   for (j=0; j < size; j++) {
       for (i=0; i < size; i++) {

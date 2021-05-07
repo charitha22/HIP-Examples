@@ -28,7 +28,7 @@
 
 #include "common/common.h"
 
-#define PROFILING 1
+
 #ifdef PROFILING
 #include "RDTimer.h"
 #endif
@@ -40,7 +40,7 @@
 #elif defined(RD_WG_SIZE)
         #define BLOCK_SIZE RD_WG_SIZE
 #else
-        #define BLOCK_SIZE 16
+        #define BLOCK_SIZE 32
 #endif
 
 static int do_verify = 0;

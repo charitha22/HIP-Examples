@@ -11,7 +11,7 @@
 #elif defined(RD_WG_SIZE)
         #define BLOCK_SIZE RD_WG_SIZE
 #else
-        #define BLOCK_SIZE 16
+        #define BLOCK_SIZE 32
 #endif
 
 __global__ void lud_diagonal(float *m, int matrix_dim, int offset)
@@ -204,13 +204,24 @@ void lud_cuda(float *m, int matrix_dim)
   int i=0;
   dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
   float *m_debug = (float*)malloc(matrix_dim*matrix_dim*sizeof(float));
+  hipEvent_t start, stop;
+  hipEventCreate(&start);
+  hipEventCreate(&stop);
 
+  hipEventRecord(start);
   for (i=0; i < matrix_dim-BLOCK_SIZE; i += BLOCK_SIZE) {
-      hipLaunchKernelGGL(lud_diagonal, dim3(1), dim3(BLOCK_SIZE), 0, 0, m, matrix_dim, i);
+      /*hipLaunchKernelGGL(lud_diagonal, dim3(1), dim3(BLOCK_SIZE), 0, 0, m, matrix_dim, i);*/
       hipLaunchKernelGGL(lud_perimeter, dim3((matrix_dim-i)/BLOCK_SIZE-1), dim3(BLOCK_SIZE*2), 0, 0, m, matrix_dim, i);
-      dim3 dimGrid((matrix_dim-i)/BLOCK_SIZE-1, (matrix_dim-i)/BLOCK_SIZE-1);
-      hipLaunchKernelGGL(lud_internal, dim3(dimGrid), dim3(dimBlock), 0, 0, m, matrix_dim, i); 
+      /*dim3 dimGrid((matrix_dim-i)/BLOCK_SIZE-1, (matrix_dim-i)/BLOCK_SIZE-1);*/
+      /*hipLaunchKernelGGL(lud_internal, dim3(dimGrid), dim3(dimBlock), 0, 0, m, matrix_dim, i); */
   }
-  hipLaunchKernelGGL(lud_diagonal, dim3(1), dim3(BLOCK_SIZE), 0, 0, m, matrix_dim, i);
+  // hipLaunchKernelGGL(lud_diagonal, dim3(1), dim3(BLOCK_SIZE), 0, 0, m, matrix_dim, i);
+  hipEventRecord(stop);
+  
+  hipEventSynchronize(stop);
+  float milliseconds = 0;
+  hipEventElapsedTime(&milliseconds, start, stop);
+  printf("%f\n", milliseconds);
+
 }
 
