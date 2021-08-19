@@ -667,7 +667,10 @@ int main(int argc, char *argv []){
 	//====================================================================================================
 	//	LAUNCH
 	//====================================================================================================
-
+    hipEvent_t start, stop;
+    hipEventCreate(&start);
+    hipEventCreate(&stop);
+		double total_time = 0;
 #ifdef PROFILING
 	mytimer->Reset("Kernel");
 #endif
@@ -682,6 +685,7 @@ int main(int argc, char *argv []){
 
 		// copy frame to GPU memory
 		hipMemcpy(common_change.d_frame, frame, common.frame_mem, hipMemcpyHostToDevice);
+		hipEventRecord(start);
 #ifdef PROFILING	
 		mytimer->Start();
 #endif
@@ -697,6 +701,12 @@ int main(int argc, char *argv []){
 #ifdef PROFILING
 		mytimer->Accumulate();
 #endif
+		hipEventRecord(stop);
+		hipEventSynchronize(stop);
+    float milliseconds = 0;
+    hipEventElapsedTime(&milliseconds, start, stop);
+    total_time += milliseconds;
+
 		// free frame after each loop iteration, since AVI library allocates memory for every frame fetched
 		free(frame);
 
@@ -705,6 +715,8 @@ int main(int argc, char *argv []){
 		fflush(NULL);
 
 	}
+
+	printf("\nTime = %f\n", total_time);
 
 #ifdef PROFILING
 	serializeTime->Serialize(mytimer);
