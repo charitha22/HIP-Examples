@@ -7,7 +7,7 @@ include ../../common/make.config
 HIP_PLATFORM = hcc
 
 ROCM_HOME = /opt/rocm/
-LLVM_HOME := /home/cgusthin/workspace/llvm-project-rocm/build_install
+LLVM_HOME := /home/min/a/cgusthin/git/llvm-project-rocm/build_cfm/
 COMMAND_GEN_SCRIPT := $(LLVM_HOME)/../scripts/gen_compile_command.py
 
 
@@ -27,14 +27,20 @@ lud_kernel.hip.o: lud_kernel.hip.cu
 lud_kernel.hip.nocfm.o : lud_kernel.hip.cu
 	mkdir -p tmp
 	$(HIPCC) -### $(HIPCC_FLAGS) -c $< -o $@ 2>&1 | python3 $(COMMAND_GEN_SCRIPT) --llvm-home=$(LLVM_HOME) --output-loc=./tmp \
-				--pass-loc=$(LLVM_HOME)/../build/lib/LLVMCFMerger.so --ptx-opt-level=O0 --disable-pass > ./tmp/compile_command.sh
+			  --ptx-opt-level=O0 --disable-pass > ./tmp/compile_command.sh
 	. ./tmp/compile_command.sh
 
 lud_kernel.hip.cfm.o : lud_kernel.hip.cu
 	mkdir -p tmp
 	$(HIPCC) -### $(HIPCC_FLAGS) -c $< -o $@ 2>&1 | python3 $(COMMAND_GEN_SCRIPT) --llvm-home=$(LLVM_HOME) --output-loc=./tmp \
-				--pass-loc=$(LLVM_HOME)/../build/lib/LLVMCFMerger.so --ptx-opt-level=O0 > ./tmp/compile_command_cfm.sh
+				--ptx-opt-level=O0 > ./tmp/compile_command_cfm.sh
 	. ./tmp/compile_command_cfm.sh
+
+lud_kernel.hip.bf.o : lud_kernel.hip.cu
+	mkdir -p tmp
+	$(HIPCC) -### $(HIPCC_FLAGS) -c $< -o $@ 2>&1 | python3 $(COMMAND_GEN_SCRIPT) --llvm-home=$(LLVM_HOME) --output-loc=./tmp \
+				--ptx-opt-level=O0 --cfmelder-options="-run-branch-fusion-only" > ./tmp/compile_command_bf.sh
+	. ./tmp/compile_command_bf.sh
 
 lud_kernel.hip.nocfm : common/common.o lud_kernel.hip.nocfm.o lud.hip.o 
 	$(HIPLD) $(CC_FLAGS) $^ -o $@ -lm
@@ -42,9 +48,12 @@ lud_kernel.hip.nocfm : common/common.o lud_kernel.hip.nocfm.o lud.hip.o
 lud_kernel.hip.cfm : common/common.o lud_kernel.hip.cfm.o lud.hip.o 
 	$(HIPLD) $(CC_FLAGS) $^ -o $@ -lm
 
+lud_kernel.hip.bf : common/common.o lud_kernel.hip.bf.o lud.hip.o
+	$(HIPLD) $(CC_FLAGS) $^ -o $@ -lm
+
 
 clean:
-	rm -f *.o common/*.o lud *.linkinfo *.perf *.ll ./tmp/* lud_kernel.hip.nocfm lud_kernel.hip.cfm
+	rm -f *.o common/*.o lud *.linkinfo *.perf *.ll ./tmp/* lud_kernel.hip.nocfm lud_kernel.hip.cfm lud_kernel.hip.bf
 
 rocprof_clean:
 	rm -f *.db *.csv *.sysinfo.txt *.json ./tmp_metrics/*
