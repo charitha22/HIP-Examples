@@ -1,0 +1,13 @@
+WG size of kernel = 64 
+ROCProfiler: input from "/home/min/a/cgusthin/git/divergence-microbench/scripts/metrics.xml"
+  gpu_index = 
+  kernel = 
+  range = 
+  9 metrics
+    SQ_THREAD_CYCLES_VALU, SQ_ACTIVE_INST_VALU, SQ_WAVES, SQ_INSTS_VMEM_WR, SQ_INSTS_VMEM_RD, SQ_INSTS_LDS, SQ_INSTS_FLAT, SQ_INSTS_VALU, VALUUtilization
+  0 traces
+frame progress: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 
+
+Time = 2927.052813
+
+ROCPRofiler: 50 contexts collected, output directory ./tmp_metrics/

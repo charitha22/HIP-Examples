@@ -14,7 +14,7 @@
 #elif defined(RD_WG_SIZE)
         #define NUMBER_THREADS RD_WG_SIZE
 #else
-        #define NUMBER_THREADS 256
+        #define NUMBER_THREADS 64
 #endif
 
 

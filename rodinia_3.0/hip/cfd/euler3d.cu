@@ -94,7 +94,7 @@
 #define VAR_DENSITY_ENERGY (VAR_MOMENTUM+NDIM)
 #define NVAR (VAR_DENSITY_ENERGY+1)
 
-
+double total_time = 0;
 
 /*
  * Generic functions
@@ -178,7 +178,17 @@ cuda_initialize_variables(int nelr, float* variables, float* ff_variable)
 __attribute__((noinline)) void initialize_variables(int nelr, float* variables, float *ff_variable)
 {
 	dim3 Dg(nelr / BLOCK_SIZE_1), Db(BLOCK_SIZE_1);
+	hipEvent_t start, stop;
+	hipEventCreate(&start);
+	hipEventCreate(&stop); 
+	hipEventRecord(start);
 	hipLaunchKernelGGL(cuda_initialize_variables, dim3(Dg), dim3(Db), 0, 0, nelr, variables, ff_variable);
+	hipEventRecord(stop);
+
+	hipEventSynchronize(stop);
+	float milis = 0.f;
+	hipEventElapsedTime(&milis, start, stop);
+	total_time+=milis;
 }
 
 __device__ __host__ inline void compute_flux_contribution(float& density, float3& momentum, float& density_energy, float& pressure, float3& velocity, float3& fc_momentum_x, float3& fc_momentum_y, float3& fc_momentum_z, float3& fc_density_energy)
@@ -249,7 +259,18 @@ cuda_compute_step_factor(
 __attribute__((noinline)) void compute_step_factor(int nelr, float* variables, float* areas, float* step_factors)
 {
 	dim3 Dg(nelr / BLOCK_SIZE_2), Db(BLOCK_SIZE_2);
+	
+		hipEvent_t start, stop;
+	hipEventCreate(&start);
+	hipEventCreate(&stop); 
+	hipEventRecord(start);
 	hipLaunchKernelGGL(cuda_compute_step_factor, dim3(Dg), dim3(Db), 0, 0, nelr, variables, areas, step_factors);
+	hipEventRecord(stop);
+
+	hipEventSynchronize(stop);
+	float milis = 0.f;
+	hipEventElapsedTime(&milis, start, stop);
+	total_time+=milis;
 }
 
 /*
@@ -392,7 +413,19 @@ cuda_compute_flux(
 __attribute__((noinline)) void compute_flux(int nelr, int* elements_surrounding_elements, float* normals, float* variables, float* fluxes, float* ff_variable, float3* ff_flux_contribution_momentum, float3* ff_flux_contribution_density_energy)
 {
 	dim3 Dg(nelr / BLOCK_SIZE_3), Db(BLOCK_SIZE_3);
+
+		hipEvent_t start, stop;
+	hipEventCreate(&start);
+	hipEventCreate(&stop); 
+	hipEventRecord(start);
+	hipEventRecord(stop);
 	hipLaunchKernelGGL(cuda_compute_flux, dim3(Dg), dim3(Db), 0, 0, nelr, elements_surrounding_elements, normals, variables, fluxes, ff_variable, ff_flux_contribution_momentum, ff_flux_contribution_density_energy);
+
+	hipEventSynchronize(stop);
+	float milis = 0.f;
+	hipEventElapsedTime(&milis, start, stop);
+	total_time+=milis;
+
 }
 
 __global__ void 
@@ -413,7 +446,17 @@ cuda_time_step(
 __attribute__((noinline)) void time_step(int j, int nelr, float* old_variables, float* variables, float* step_factors, float* fluxes)
 {
 	dim3 Dg(nelr / BLOCK_SIZE_4), Db(BLOCK_SIZE_4);
+			hipEvent_t start, stop;
+	hipEventCreate(&start);
+	hipEventCreate(&stop); 
+	hipEventRecord(start);
+	hipEventRecord(stop);
 	hipLaunchKernelGGL(cuda_time_step, dim3(Dg), dim3(Db), 0, 0, j, nelr, old_variables, variables, step_factors, fluxes);
+
+	hipEventSynchronize(stop);
+	float milis = 0.f;
+	hipEventElapsedTime(&milis, start, stop);
+	total_time+=milis;
 }
 
 /*
@@ -589,8 +632,10 @@ int main(int argc, char** argv)
     delete serializeTime;
 #endif
 
+	std::cout << "Time : " << total_time << "\n";
+
 	std::cout << "Saving solution..." << std::endl;
-	dump(variables, nel, nelr);
+	// dump(variables, nel, nelr);
 	std::cout << "Saved solution..." << std::endl;
 
 	std::cout << "Cleaning up..." << std::endl;

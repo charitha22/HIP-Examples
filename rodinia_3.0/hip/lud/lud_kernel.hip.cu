@@ -11,7 +11,7 @@
 #elif defined(RD_WG_SIZE)
         #define BLOCK_SIZE RD_WG_SIZE
 #else
-        #define BLOCK_SIZE 32
+        #define BLOCK_SIZE 8
 #endif
 
 __global__ void lud_diagonal(float *m, int matrix_dim, int offset)

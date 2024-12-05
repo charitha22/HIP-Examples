@@ -33,7 +33,7 @@ lud_kernel.hip.nocfm.o : lud_kernel.hip.cu
 lud_kernel.hip.cfm.o : lud_kernel.hip.cu
 	mkdir -p tmp
 	$(HIPCC) -### $(HIPCC_FLAGS) -c $< -o $@ 2>&1 | python3 $(COMMAND_GEN_SCRIPT) --llvm-home=$(LLVM_HOME) --output-loc=./tmp \
-				--ptx-opt-level=O0 > ./tmp/compile_command_cfm.sh
+				--ptx-opt-level=O0 --cfmelder-options="-stats" > ./tmp/compile_command_cfm.sh
 	. ./tmp/compile_command_cfm.sh
 
 lud_kernel.hip.bf.o : lud_kernel.hip.cu
